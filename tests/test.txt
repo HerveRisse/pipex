@@ -1,0 +1,49 @@
+# Créer un fichier de test
+echo "Hello World
+This is a test file
+With multiple lines
+For testing pipex
+Hello again" > infile.txt
+
+make clean
+make
+
+# Test 1: Comptage de lignes
+< infile.txt wc -l > outfile1.txt
+./pipex infile.txt "wc -l" "cat" outfile2.txt
+diff outfile1.txt outfile2.txt
+
+# Test 2: Grep et wc
+< infile.txt grep "Hello" | wc -l > outfile3.txt
+./pipex infile.txt "grep Hello" "wc -l" outfile4.txt
+diff outfile3.txt outfile4.txt
+
+# Test 3: Sort et head
+< infile.txt sort | head -n 2 > outfile5.txt
+./pipex infile.txt "sort" "head -n 2" outfile6.txt
+diff outfile5.txt outfile6.txt
+
+# Test fichier inexistant
+./pipex nonexistent.txt "ls" "wc -l" outfile.txt
+
+# Test commande invalide
+./pipex infile.txt "invalidcmd" "wc -l" outfile.txt
+
+# Test nombre incorrect d'arguments
+./pipex infile.txt "ls"
+
+# Test avec grep et sort
+./pipex infile.txt "grep Hello" "sort -r" outfile7.txt
+< infile.txt grep "Hello" | sort -r > outfile7_shell.txt
+diff outfile7.txt outfile7_shell.txt    # Doit ne rien afficher
+
+# Test avec cat et tr
+./pipex infile.txt "cat" "tr '[:lower:]' '[:upper:]'" outfile8.txt
+< infile.txt cat | tr '[:lower:]' '[:upper:]' > outfile8_shell.txt
+diff outfile8.txt outfile8_shell.txt    # Doit ne rien afficher
+
+valgrind --leak-check=full --show-leak-kinds=all ./pipex infile.txt "ls" "wc -l" outfile.txt
+
+make fclean
+rm outfile*.txt
+rm infile.txt
